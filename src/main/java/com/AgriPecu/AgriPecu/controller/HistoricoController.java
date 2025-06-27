@@ -1,6 +1,6 @@
 package com.AgriPecu.AgriPecu.controller;
 
-import com.AgriPecu.AgriPecu.model.HistoricoClima;
+import com.AgriPecu.AgriPecu.model.ConsultaClima;
 import com.AgriPecu.AgriPecu.service.ClimaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,7 +15,7 @@ public class HistoricoController {
     private ClimaService climaService;
 
     @GetMapping("/historico")
-    public List<HistoricoClima> listarHistorico() {
+    public List<ConsultaClima> listarHistorico() {
         return climaService.getHistorico();
     }
 

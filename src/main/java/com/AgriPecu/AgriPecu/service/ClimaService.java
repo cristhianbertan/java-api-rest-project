@@ -1,16 +1,13 @@
 package com.AgriPecu.AgriPecu.service;
 
-import com.AgriPecu.AgriPecu.model.ClimaAvaliacaoResponse;
-import com.AgriPecu.AgriPecu.model.ClimaRequest;
-import com.AgriPecu.AgriPecu.model.ClimaResponse;
-import com.AgriPecu.AgriPecu.model.HistoricoClima;
+import com.AgriPecu.AgriPecu.model.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -21,8 +18,9 @@ public class ClimaService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper mapper = new ObjectMapper();
-    private final List<HistoricoClima> historico = new ArrayList<>();
 
+    @Autowired
+    private ConsultaClimaService consultaClimaService;
 
     public ClimaResponse gerarRecomendacao(ClimaRequest request) {
         String cidade = request.getCidade();
@@ -42,17 +40,19 @@ public class ClimaService {
 
             String recomendacao = gerarTextoRecomendacao(temp, condicao, tipo, atividade);
 
-            this.historico.add(new HistoricoClima(cidade,tipo,atividade,recomendacao));
+            ConsultaClima novaConsulta = new ConsultaClima(cidade, tipo, atividade, recomendacao, condicoesAtuais);
+            consultaClimaService.createConsulta(novaConsulta);
             return new ClimaResponse(cidade, condicoesAtuais, recomendacao);
 
         } catch (Exception e) {
-
+            ConsultaClima erroConsulta = new ConsultaClima(cidade, "Indisponível", "Erro ao consultar dados climáticos: " + e.getMessage());
+            consultaClimaService.createConsulta(erroConsulta);
             return new ClimaResponse(cidade, "Indisponível", "Erro ao consultar dados climáticos: " + e.getMessage());
         }
     }
 
-    public List<HistoricoClima> getHistorico() {
-        return this.historico;
+    public List<ConsultaClima> getHistorico() {
+        return consultaClimaService.getAllConsultas();
     }
     private String gerarTextoRecomendacao(double temp, String condicao, String tipo, String atividade) {
         switch (tipo.toLowerCase()) {
@@ -169,13 +169,15 @@ public class ClimaService {
             } else {
                 avaliacao = "Clima favorável para atividades no campo.";
             }
-            this.historico.add(new HistoricoClima(cidade,clima,avaliacao));
+
+            ConsultaClima novaAvaliacao = new ConsultaClima(cidade, clima, avaliacao);
+            consultaClimaService.createConsulta(novaAvaliacao);
+
             return new ClimaAvaliacaoResponse(cidade, clima, avaliacao);
         } catch (Exception e) {
-            this.historico.add(new HistoricoClima(cidade,"Indisponível","Erro ao consultar clima: " + e.getMessage()));
+            ConsultaClima erroAvaliacao = new ConsultaClima(cidade, "Indisponível", "Erro ao consultar clima: " + e.getMessage());
+            consultaClimaService.createConsulta(erroAvaliacao);
             return new ClimaAvaliacaoResponse(cidade, "Indisponível", "Erro ao consultar clima: " + e.getMessage());
         }
     }
-
-
 }
