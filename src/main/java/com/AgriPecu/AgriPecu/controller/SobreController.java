@@ -10,7 +10,7 @@ public class SobreController {
     public String sobre() {
         return """
         {
-          "integrantes": ["Maicou Hahn Fortuna","Cristhian Cardoso Bertan"],
+          "integrantes": ["Maicou Hahn Fortuna","Cristhian Cardoso Bertan", "Davi Carlos Freitas"],
           "nome_projeto": "AgriPecu"
         }
         """;
